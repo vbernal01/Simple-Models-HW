@@ -4,6 +4,8 @@ const models = require('../models');
 // get the Cat model
 const { Cat } = models;
 
+const { Dog } = models;
+
 // default fake data so that we have something to work with until we make a real Cat
 const defaultData = {
   name: 'unknown',
@@ -83,8 +85,46 @@ const hostPage3 = (req, res) => {
   res.render('page3');
 };
 
+// Function for rendering the page1 template
+// Page1 has a loop that iterates over an array of cats
+const hostPage4 = async (req, res) => {
+  try {
+    const docs = await Dog.find({}).lean().exec();
+    return res.render('page4', { dogs: docs });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to find dogs' });
+  }
+};
+
 // Get name will return the name of the last added cat.
 const getName = (req, res) => res.json({ name: lastAdded.name });
+
+
+const setDogName = async (req, res) => {
+  if (!req.body.firstname || !req.body.breed || !req.body.age) {
+    // If they are missing data, send back an error.
+    return res.status(400).json({ error: 'all information is required' });
+  }
+
+  const dogData = {
+    name: `${req.body.firstname} ${req.body.lastname}`,
+    breed: req.body.breed,
+    age: req.body.age,
+  };
+
+  const newDog = new Dog(dogData);
+
+  try {
+    await newDog.save();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'failed to create dog' });
+  }
+
+  return res.json(dogData);
+}
+
 
 // Function to create a new cat in the database
 const setName = async (req, res) => {
@@ -148,6 +188,29 @@ const setName = async (req, res) => {
     name: lastAdded.name,
     beds: lastAdded.bedsOwned,
   });
+};
+
+const searchDogName = async (req, res) => {
+  if (!req.query.name) {
+    return res.status(400).json({ error: 'Name is required to perform a search' });
+  }
+
+  let doc;
+  try {
+    doc = await Dog.findOne({ name: req.query.name }).exec();
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: 'Something went wrong' });
+  }
+
+  if (!doc) {
+    return res.json({ error: 'No dog found' });
+  }
+    doc.age++;
+    await doc.save();
+
+  return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
 };
 
 // Function to handle searching a cat by name.
@@ -247,9 +310,12 @@ module.exports = {
   page1: hostPage1,
   page2: hostPage2,
   page3: hostPage3,
+  page4: hostPage4,
   getName,
   setName,
+  setDogName,
   updateLast,
   searchName,
+  searchDogName,
   notFound,
 };
