@@ -100,7 +100,6 @@ const hostPage4 = async (req, res) => {
 // Get name will return the name of the last added cat.
 const getName = (req, res) => res.json({ name: lastAdded.name });
 
-
 const setDogName = async (req, res) => {
   if (!req.body.firstname || !req.body.breed || !req.body.age) {
     // If they are missing data, send back an error.
@@ -123,8 +122,7 @@ const setDogName = async (req, res) => {
   }
 
   return res.json(dogData);
-}
-
+};
 
 // Function to create a new cat in the database
 const setName = async (req, res) => {
@@ -198,7 +196,6 @@ const searchDogName = async (req, res) => {
   let doc;
   try {
     doc = await Dog.findOne({ name: req.query.name }).exec();
-
   } catch (err) {
     console.log(err);
     return res.status(500).json({ error: 'Something went wrong' });
@@ -207,8 +204,8 @@ const searchDogName = async (req, res) => {
   if (!doc) {
     return res.json({ error: 'No dog found' });
   }
-    doc.age++;
-    await doc.save();
+  doc.age++;
+  await doc.save();
 
   return res.json({ name: doc.name, breed: doc.breed, age: doc.age });
 };
